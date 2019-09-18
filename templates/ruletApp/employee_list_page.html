@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>list of employee</title>
+</head>
+<body>
+    <ul>
+        {% for employee in employee_list %}
+            <li>
+                <img src="{{ employee.image.url }}" width="3%" height="3%">
+                <a href="{% url "employee_detail" pk=employee.id %}">{{ employee }}</a>
+            </li>
+        {% empty %}
+            <li>no employee exists</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
