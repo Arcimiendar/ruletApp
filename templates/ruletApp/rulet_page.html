@@ -18,14 +18,15 @@
         {% empty %}
             <li>no employee available</li>
         {% endfor %}
-
-    <div class="info"></div>
     </ul>
-     <select>
+    <div id="info"></div>
+    <select>
         {% for employee in employees %}
             <option value="e{{ employee.id }}">{{ employee }}</option>
         {% endfor %}
     </select>
+
+    <input type="button" value="exit" onclick="">
 
     <script>
         let socket = new WebSocket(
@@ -35,7 +36,22 @@
 
         };
         socket.onmessage = ev => {
+            let data = JSON.parse(ev.data);
+            if (data['state'] === 'info') {
+                document.getElementById('info').innerHTML = data['info']
+            } else if (data['state'] === 'chosen') {
+                let to_delete = document.getElementsByClassName('e' + data['employee_id'])
+                for (let i=0;i<to_delete.length;i++)
+                    to_delete[i].remove()
+            }
+        }
 
+        function chose() {
+
+        }
+
+        function exit() {
+            socket.send(JSON.stringify({state: 'exit'}))
         }
     </script>
 

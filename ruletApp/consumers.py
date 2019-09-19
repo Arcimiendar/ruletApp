@@ -1,22 +1,23 @@
 import json
+import time
 from typing import List, Dict, Union
 
 from channels.generic.websocket import WebsocketConsumer
 from . import models
 
-"""
-data that can be sent to the consumer below:
-{'state': 'chosen', 'employee_id': 123} - send employee id after chosen
-{'state': 'exit'} - department does not need employees more and left the rulet
-
-data that can be received from the consumer below
-{'state': 'info', 'info': 'some message to show'} - information about rulet state. for example 'now is turn of 2nd dep'
-{'state': 'chosen', 'employee_id': 12} - send employee id to all consumers to remove this employee from the chosing list
-
-"""
-
 
 class RuletConsumer(WebsocketConsumer):
+    """
+    data that can be sent to the RuletConsumer (API of RuletConsumer):
+    {'state': 'chosen', 'employee_id': 123} - send employee id after chosen
+    {'state': 'exit'} - department does not need employees more and left the rulet
+
+    data that can be received from the consumer below
+    {'state': 'info', 'info': 'some message to show'}
+                                    - information about rulet state. for example 'now is turn of 2nd dep'
+    {'state': 'chosen', 'employee_id': 12}
+                                    - send employee id to all consumers to remove this employee from the choosing list
+    """
 
     connections: List['RuletConsumer'] = []
 
@@ -26,6 +27,7 @@ class RuletConsumer(WebsocketConsumer):
 
     def connect(self):
         self.accept()
+        time.sleep(1)
         RuletConsumer.connections.append(self)
         print(
             f'there is {len(RuletConsumer.connections)} connected departments now '
@@ -57,5 +59,6 @@ class RuletConsumer(WebsocketConsumer):
     def resolve_step(self, data: Dict[str, Union[int, str]]):
         if len(models.Department.objects.filter(rulet_state='does not know')) > 0:
             self.send(json.dumps({
-                'info': "waiting departments' responses"
+                'state': 'info',
+                'info': "waiting departments' responses",
             }))
