@@ -9,5 +9,10 @@
     <h1>{{ object }}</h1>
     <p>{{ object.date_of_birth|date }}</p>
     <p>{{ object.description }}</p>
+    {% if object.department %}
+        <p>is in the <b>{{ object.department }}</b></p>
+    {% else %}
+        <p><b>is not in any department</b></p>
+    {% endif %}
 </body>
 </html>

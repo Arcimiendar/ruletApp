@@ -10,6 +10,9 @@
             <li>
                 <img src="{{ employee.image.url }}" width="3%" height="3%">
                 <a href="{% url "employee_detail" pk=employee.id %}">{{ employee }}</a>
+                {% if employee.department %}
+                    {{ employee.department }}
+                {% endif %}
             </li>
         {% empty %}
             <li>no employee exists</li>

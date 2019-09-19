@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.views.generic import FormView, ListView, DetailView
+from django.views import View
+from django.views.generic import FormView, ListView, DetailView, TemplateView
 from . import forms
 from . import models
 
@@ -26,3 +27,13 @@ class EmployeeDetailView(DetailView):
 class DepartmentProfilePage(DetailView):
     template_name = 'ruletApp/department_profile_page.html'
     model = models.Department
+
+
+class RuletView(DetailView):
+    template_name = 'ruletApp/rulet_page.html'
+    model = models.Department
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['employees'] = models.Employee.objects.all().filter(department=None)
+        return context

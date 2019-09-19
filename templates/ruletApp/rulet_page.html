@@ -2,24 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>rulet</title>
+    <title>{{ object }} rulet</title>
 </head>
 <body>
     available employees:
     <ul>
-        <li style="background-color: gray">ipsum lorum</li>
-        <li>ipsum lorum</li>
+        {% for employee in employees %}
+            <li class="e{{ employee.id }}">
+                <img src="{{ employee.image.url }}" width="3%" height="3%">
+                <a href="{% url "employee_detail" pk=employee.id %}">{{ employee }}</a>
+                {% if employee.department %}
+                    {{ employee.department }}
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>no employee available</li>
+        {% endfor %}
+
+    <div class="info"></div>
     </ul>
-
-    <div class="info">now is step of ipsumlorum</div>
-
-    <select>
-        <option>ips</option>
-        <option>ips2</option>
-        <option>ips3</option>
+     <select>
+        {% for employee in employees %}
+            <option value="e{{ employee.id }}">{{ employee }}</option>
+        {% endfor %}
     </select>
-    <input type="button" value="chose">
 
+    <script>
+        let socket = new WebSocket(
+            'ws://' + window.location.host + '/ws/rulet/{{ object.id }}'
+        );
+        socket.onopen = ev => {
+
+        };
+        socket.onmessage = ev => {
+
+        }
+    </script>
 
 </body>
 </html>
