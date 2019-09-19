@@ -19,11 +19,15 @@ class Department(models.Model):
         return self.name
 
 
-def get_employee_folder_path(employee: 'Employee', filename: str) -> str:
-    return f'employees_images/{employee.first_name}_{employee.last_name}/{filename}'
+class RuletSession(models.Model):
+    active = models.BooleanField(default=True)
 
 
 class Employee(models.Model):
+
+    def get_employee_folder_path(employee: 'Employee', filename: str) -> str:
+        return f'employees_images/{employee.first_name}_{employee.last_name}/{filename}'
+
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     date_of_birth = models.DateField()
@@ -32,10 +36,9 @@ class Employee(models.Model):
 
     department = models.ForeignKey(Department, blank=True, null=True,
                                    on_delete=models.SET_NULL, related_name='employees')
+    # last_rulet = models.ForeignKey(RuletSession, blank=True, null=True,
+    #                                on_delete=models.SET_NULL, related_name='employees')
+    rulets = models.ManyToManyField(RuletSession, blank=True, related_name='employees')
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
-
-
-# class RuletSession(models.Model):
-    # active = models.BooleanField(default=False)

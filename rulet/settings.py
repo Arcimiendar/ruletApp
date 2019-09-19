@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'ruletApp',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
