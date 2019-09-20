@@ -1,6 +1,16 @@
+import datetime
+
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
+
+
+class RuletSession(models.Model):
+    active = models.BooleanField(default=True)
+    date = models.DateTimeField(default=datetime.datetime.now)
+
+    def __str__(self):
+        return f'rulet session in {self.date.date()} on {self.date.time()}'
 
 
 class Department(models.Model):
@@ -20,10 +30,6 @@ class Department(models.Model):
         return self.name
 
 
-class RuletSession(models.Model):
-    active = models.BooleanField(default=True)
-
-
 class Employee(models.Model):
 
     def get_employee_folder_path(employee: 'Employee', filename: str) -> str:
@@ -37,9 +43,15 @@ class Employee(models.Model):
 
     department = models.ForeignKey(Department, blank=True, null=True,
                                    on_delete=models.SET_NULL, related_name='employees')
-    # last_rulet = models.ForeignKey(RuletSession, blank=True, null=True,
-    #                                on_delete=models.SET_NULL, related_name='employees')
-    rulets = models.ManyToManyField(RuletSession, blank=True, related_name='employees')
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class RuletChoice(models.Model):
+    rulet_session = models.ForeignKey(RuletSession, on_delete=models.CASCADE, related_name='rulet_choices')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='rulet_choices')
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='rulet_choices')
+
+    def __str__(self):
+        return f'{self.rulet_session}: {self.department} chose {self.employee}'
