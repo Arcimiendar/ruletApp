@@ -85,3 +85,36 @@ class DepartmentOperationsRedirectView(RedirectView):
             raise Http404  # if requested operation is not supported
 
         return reverse_lazy('department_profile', kwargs={'pk': kwargs['pk']})
+
+
+class RuletSessionListView(ListView):
+    template_name = 'ruletApp/rulet_list_page.html'
+    model = models.RuletSession
+
+
+class RuletSessionResultView(DetailView):
+    template_name = 'ruletApp/rulet_session_result_page.html'
+    model = models.RuletSession
+
+    def get_context_data(self, **kwargs):
+        rulet_session: models.RuletSession = self.get_object()
+        context = super().get_context_data(**kwargs)
+        context['departments'] = set()
+        dict_employees = {}
+        for rulet_choice in rulet_session.rulet_choices.all():
+            context['departments'].add(rulet_choice.department)
+            if rulet_choice.department not in dict_employees.keys():
+                dict_employees[rulet_choice.department] = []
+            dict_employees[rulet_choice.department].append(rulet_choice.employee)
+
+        context['employee_data'] = []
+        max_len_of_employee_list = max(*(len(employee_list) for employee_list in dict_employees.values()))
+        for i in range(max_len_of_employee_list):  # prepare employee data to table representation
+            context['employee_data'].append([])
+            for employee_list in dict_employees.values():
+                try:
+                    context['employee_data'][i].append(employee_list[i])
+                except IndexError:
+                    context['employee_data'][i].append('')
+
+        return context
