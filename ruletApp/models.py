@@ -4,10 +4,11 @@ from django.db import models
 
 
 class Department(models.Model):
-    RULET_STATE = (
-        ('0', 'does not know'),
-        ('1', 'is in rulet'),
-        ('2', 'is not in rulet'),
+    RULET_STATE = (  # all departments have to allow rulet. I did it to avoid cheating when one department
+                     # chose employees without notification another
+        ('0', 'does not know'),    # this department is not agreed yet
+        ('1', 'is in rulet'),      # this department is participating in a rulet
+        ('2', 'is not in rulet'),  # this department agreed, but is not participating in a rulet
     )
 
     name = models.CharField(max_length=256)

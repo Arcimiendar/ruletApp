@@ -20,13 +20,14 @@
         {% endfor %}
     </ul>
     <div id="info"></div>
-    <select>
+    <select id="chose">
         {% for employee in employees %}
             <option value="e{{ employee.id }}">{{ employee }}</option>
         {% endfor %}
     </select>
 
-    <input type="button" value="exit" onclick="">
+    <input type="button" value="exit" onclick="exit()">
+    <input type="button" value="chose" onclick="chose()">
 
     <script>
         let socket = new WebSocket(
@@ -40,18 +41,22 @@
             if (data['state'] === 'info') {
                 document.getElementById('info').innerHTML = data['info']
             } else if (data['state'] === 'chosen') {
-                let to_delete = document.getElementsByClassName('e' + data['employee_id'])
+                let to_delete = document.getElementsByClassName('e' + data['employee_id']);
                 for (let i=0;i<to_delete.length;i++)
                     to_delete[i].remove()
             }
-        }
+        };
 
         function chose() {
-
+            let select = document.getElementById('chose');
+            let selected_option = select.options[select.selectedIndex];
+            let employee_id = +selected_option.value.slice(1, selected_option.value.length);
+            socket.send(JSON.stringify({state: 'chosen', employee_id: employee_id}))
         }
 
         function exit() {
-            socket.send(JSON.stringify({state: 'exit'}))
+            socket.send(JSON.stringify({state: 'exit'}));
+            location.pathname = location.pathname.replace('rulet', 'department');
         }
     </script>
 

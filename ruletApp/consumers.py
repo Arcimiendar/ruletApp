@@ -24,10 +24,13 @@ class RuletConsumer(WebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.department_id = self.scope['url_route']['kwargs']['department_id']
+        self.this_department: models.Department = models.Department.objects.get(pk=self.department_id)
+        self.this_department.rulet_state = models.Department.RULET_STATE[1][0]
+        # it means department is participating in a rulet
+        self.this_department.save()
 
     def connect(self):
         self.accept()
-        time.sleep(1)
         RuletConsumer.connections.append(self)
         print(
             f'there is {len(RuletConsumer.connections)} connected departments now '
@@ -57,7 +60,13 @@ class RuletConsumer(WebsocketConsumer):
         self.resolve_step(data)
 
     def resolve_step(self, data: Dict[str, Union[int, str]]):
-        if len(models.Department.objects.filter(rulet_state='does not know')) > 0:
+        if data['state'] == 'exit':
+            self.this_department.rulet_state = models.Department.RULET_STATE[2][0]  # it means that department does not
+            # need staff anymore
+            self.this_department.save()
+
+        if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
+            # state "does not know".
             self.send(json.dumps({
                 'state': 'info',
                 'info': "waiting departments' responses",
