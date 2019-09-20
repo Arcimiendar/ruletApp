@@ -6,8 +6,16 @@
 </head>
 <body>
     <h1>{{ object }}</h1>
-    <p>{{ object.address }}</p>
-    <p>{{ object.description }}</p>
+    <p>
+        {% if object.address != None %}
+            {{ object.address }}
+        {% endif %}
+    </p>
+    <p>
+        {% if object.description != None %}
+            {{ object.description }}
+        {% endif %}
+    </p>
     <h2>Employees:</h2>
     <ul>
         {% for employee in object.employees.all %}
@@ -19,6 +27,11 @@
             there is no employees in this department yet
         {% endfor %}
     </ul>
-    <a>clear department</a>
+    <a href="{% url 'department_operations' object.id 'clear' %}">clear department</a><br>
+    <p>{{ message }}</p>
+    {% if state == 'needs_to_allow' %}
+        <a href="{% url 'department_operations' object.id 'not_rulet' %}">not participate in the rulet</a><br>
+    {% endif %}
+    <a href="{% url "rulet_page" pk=object.id %}">participate in the rulet</a>
 </body>
 </html>

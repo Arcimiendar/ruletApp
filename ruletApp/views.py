@@ -1,7 +1,9 @@
-from django.http import HttpResponseRedirect
+from django.db.models import Q
+from django.http import HttpResponseRedirect, Http404
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import FormView, ListView, DetailView, TemplateView
+from django.views.generic import FormView, ListView, DetailView, TemplateView, RedirectView
 from . import forms
 from . import models
 
@@ -24,9 +26,31 @@ class EmployeeDetailView(DetailView):
     model = models.Employee
 
 
-class DepartmentProfilePage(DetailView):
+class DepartmentProfilePageView(DetailView):
     template_name = 'ruletApp/department_profile_page.html'
     model = models.Department
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if len(models.Department.objects.filter(Q(rulet_state=models.Department.RULET_STATE[1][0]) |
+                                                Q(rulet_state=models.Department.RULET_STATE[2][0]))) > 0:
+            # if there is a rulet in action
+            department: models.Department = self.get_object()
+            if department.rulet_state == models.Department.RULET_STATE[0][0]:  # if have not allowed yet
+                context['state'] = 'needs_to_allow'
+                context['message'] = 'you need to allow or/and join to the rulet'
+            elif department.rulet_state == models.Department.RULET_STATE[1][0]:  # if it is participating
+                context['state'] = 'message'
+                context['message'] = 'you are participating in the rulet.'
+            else:  # if it is not participating
+                context['state'] = 'message'
+                context['message'] = 'you are not participating in the rulet, but you still can.'
+        else:  # if there is not any rulet in the action
+            context['state'] = 'message'
+            context['message'] = 'you can begin the rulet'
+
+        return context
 
 
 class RuletView(DetailView):
@@ -37,3 +61,27 @@ class RuletView(DetailView):
         context = super().get_context_data(**kwargs)
         context['employees'] = models.Employee.objects.all().filter(department=None)
         return context
+
+
+class DepartmentOperationsRedirectView(RedirectView):
+    """
+    Do operation under selected department and redirect back to the department profile page
+    Operations:
+        clear - clears stuff from department
+        not_rulet - not to join in the rulet
+    """
+
+    def get_redirect_url(self, *args, **kwargs):
+        department = get_object_or_404(models.Department, pk=kwargs['pk'])
+        if kwargs['operation'] == 'clear':
+            for employee in department.employees.all():
+                employee.department = None
+                employee.save()
+
+        elif kwargs['operation'] == 'not_rulet':
+            department.rulet_state = models.Department.RULET_STATE[2][0]  # not participate state
+            department.save()
+        else:
+            raise Http404  # if requested operation is not supported
+
+        return reverse_lazy('department_profile', kwargs={'pk': kwargs['pk']})
