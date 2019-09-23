@@ -30,16 +30,21 @@
     <input type="button" value="chose" onclick="chose()">
 
     <script>
+        let socket_is_open = false;
         let socket = new WebSocket(
             'ws://' + window.location.host + '/ws/rulet/{{ object.id }}'
         );
         socket.onopen = ev => {
-
+            socket_is_open = true;
         };
         socket.onmessage = ev => {
             let data = JSON.parse(ev.data);
             if (data['state'] === 'info') {
                 document.getElementById('info').innerHTML = data['info']
+                if (data['exit']) {
+                    socket.close();
+                    socket_is_open = false;
+                }
             } else if (data['state'] === 'chosen') {
                 let to_delete = document.getElementsByClassName('e' + data['employee_id']);
                 for (let i=0;i<to_delete.length;i++)
@@ -51,11 +56,13 @@
             let select = document.getElementById('chose');
             let selected_option = select.options[select.selectedIndex];
             let employee_id = +selected_option.value.slice(1, selected_option.value.length);
-            socket.send(JSON.stringify({state: 'chosen', employee_id: employee_id}))
+            if (socket_is_open)
+                socket.send(JSON.stringify({state: 'chosen', employee_id: employee_id}))
         }
 
         function exit() {
-            socket.send(JSON.stringify({state: 'exit'}));
+            if (socket_is_open)
+                socket.send(JSON.stringify({state: 'exit'}));
             location.pathname = location.pathname.replace('rulet', 'department');
         }
     </script>

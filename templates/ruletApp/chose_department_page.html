@@ -11,7 +11,7 @@
         <input type="submit">
     </form>
     <a href="{% url 'employees_list' %}">employees list</a><br>
-    <a>clear all departments</a><br>
-    <a>go to the rulet application</a>
+    <a href="{% url 'rulet_session_list' %}">rulet list</a><br>
+    <a href="{% url 'department_operations' 0 'clear_all' %}">clear all departments</a><br>
 </body>
 </html>

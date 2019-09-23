@@ -71,9 +71,18 @@ class DepartmentOperationsRedirectView(RedirectView):
     Operations:
         clear - clears stuff from department
         not_rulet - not to join in the rulet
+        clear_all - clears stuff from all departments
     """
 
     def get_redirect_url(self, *args, **kwargs):
+
+        if kwargs['operation'] == 'clear_all':
+            for department in models.Department.objects.all():
+                for employee in department.employees.all():
+                    employee.department = None
+                    employee.save()
+            return reverse_lazy('home')
+
         department = get_object_or_404(models.Department, pk=kwargs['pk'])
         if kwargs['operation'] == 'clear':
             for employee in department.employees.all():

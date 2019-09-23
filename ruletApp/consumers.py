@@ -4,17 +4,20 @@ from typing import List, Dict, Union
 
 from channels.generic.websocket import WebsocketConsumer
 from . import models
+from .rulet_thread import RuletThread
 
 
 class RuletConsumer(WebsocketConsumer):
     """
     data that can be sent to the RuletConsumer (API of RuletConsumer):
+    {'state': 'update'} - ask to send actual data about state of the rulet
     {'state': 'chosen', 'employee_id': 123} - send employee id after chosen
     {'state': 'exit'} - department does not need employees more and left the rulet
 
     data that can be received from the consumer below
-    {'state': 'info', 'info': 'some message to show'}
-                                    - information about rulet state. for example 'now is turn of 2nd dep'
+    {'state': 'info', 'info': 'some message to show', 'exit': bool}
+                                    - information about rulet state. for example 'now is turn of 2nd dep'. 'exit' -
+                                      close or not connection
     {'state': 'chosen', 'employee_id': 12}
                                     - send employee id to all consumers to remove this employee from the choosing list
     """
@@ -28,19 +31,19 @@ class RuletConsumer(WebsocketConsumer):
         self.this_department.rulet_state = models.Department.RULET_STATE[1][0]
         # it means department is participating in a rulet
         self.this_department.save()
+        self.rulet_thread = RuletThread.get_instance()
 
     def connect(self):
         self.accept()
         RuletConsumer.connections.append(self)
+        self.receive('{"state": "update"}')
         print(
             f'there is {len(RuletConsumer.connections)} connected departments now '
             f'(connect department id is {self.department_id})'
         )
-        self.resolve_step({'state': 'connect'})
 
     def disconnect(self, code):
         RuletConsumer.connections.remove(self)
-        self.resolve_step({'state': 'disconnect'})
         print(f'there is {len(RuletConsumer.connections)} connected departments now '
               f'(disconnect department id is {self.department_id})'
               )
@@ -56,18 +59,30 @@ class RuletConsumer(WebsocketConsumer):
         if 'state' not in data.keys():  # it means that we does not allow incorrect responses
             self.close()
             RuletConsumer.connections.remove(self)
+        responses = self.rulet_thread.resolve_message(data, self.this_department)
 
-        self.resolve_step(data)
+        for response in responses:
+            for connection in self.connections:
+                if connection.this_department in response.direction:
+                    for message in response.messages:
+                        connection.send(json.dumps(message))
 
     def resolve_step(self, data: Dict[str, Union[int, str]]):
-        if data['state'] == 'exit':
-            self.this_department.rulet_state = models.Department.RULET_STATE[2][0]  # it means that department does not
-            # need staff anymore
-            self.this_department.save()
+        # if data['state'] == 'exit':
+        #     self.this_department.rulet_state = models.Department.RULET_STATE[2][0]  # it means that department does not
+        #     # need staff anymore
+        #     self.this_department.save()
+        #     self.rulet_thread.remove_department(self.this_department)
+        #
+        # if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
+        #     # state "does not know".
+        #     self.send(json.dumps({
+        #         'state': 'info',
+        #         'info': "waiting departments' responses",
+        #     }))
+        # elif not self.rulet_thread.is_alive():
+        #     self.rulet_thread.start()
 
-        if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
-            # state "does not know".
-            self.send(json.dumps({
-                'state': 'info',
-                'info': "waiting departments' responses",
-            }))
+        self.rulet_thread.resolve_message(data, self.this_department)
+
+
