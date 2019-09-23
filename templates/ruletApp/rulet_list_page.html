@@ -5,8 +5,13 @@
     <title>Rulet list</title>
 </head>
 <body>
-    {% for rulet_sesion in object_list %}
-        <a href="{% url 'rulet_result' pk=rulet_session.id %}">{{ rulet_sesion }}</a>
+    <ul>
+    {% for rulet_session in object_list %}
+        <li>
+            <a href="{% url 'rulet_result' pk=rulet_session.id %}">{{ rulet_session }}</a>
+        </li>
+    {% empty %}
     {% endfor %}
+    </ul>
 </body>
 </html>

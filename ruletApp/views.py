@@ -1,3 +1,5 @@
+from typing import List
+
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
@@ -107,7 +109,7 @@ class RuletSessionResultView(DetailView):
                 dict_employees[rulet_choice.department] = []
             dict_employees[rulet_choice.department].append(rulet_choice.employee)
 
-        context['employee_data'] = []
+        context['employee_data']: List[List[models.Employee]] = []
         max_len_of_employee_list = max(*(len(employee_list) for employee_list in dict_employees.values()))
         for i in range(max_len_of_employee_list):  # prepare employee data to table representation
             context['employee_data'].append([])
