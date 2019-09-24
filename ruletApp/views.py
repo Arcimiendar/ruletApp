@@ -4,7 +4,6 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views import View
 from django.views.generic import FormView, ListView, DetailView, TemplateView, RedirectView
 from . import forms
 from . import models
@@ -15,7 +14,7 @@ class ChoseDepartmentView(FormView):
     form_class = forms.ChoseDepartmentForm
 
     def form_valid(self, form):
-        return HttpResponseRedirect(reverse_lazy('department_profile', args=[form.cleaned_data['options']]))
+        return HttpResponseRedirect(reverse_lazy('department_profile', args=[form.cleaned_data['options'].id]))
 
 
 class EmployeesListView(ListView):
@@ -41,16 +40,16 @@ class DepartmentProfilePageView(DetailView):
             department: models.Department = self.get_object()
             if department.rulet_state == models.Department.RULET_STATE[0][0]:  # if have not allowed yet
                 context['state'] = 'needs_to_allow'
-                context['message'] = 'you need to allow or/and join to the rulet'
+                context['message'] = 'You need to allow or/and join to the rulet.'
             elif department.rulet_state == models.Department.RULET_STATE[1][0]:  # if it is participating
-                context['state'] = 'message'
-                context['message'] = 'you are participating in the rulet.'
+                context['state'] = 'participating'
+                context['message'] = 'You are participating in the rulet.'
             else:  # if it is not participating
                 context['state'] = 'message'
-                context['message'] = 'you are not participating in the rulet, but you still can.'
+                context['message'] = 'You are not participating in the rulet, but you still can.'
         else:  # if there is not any rulet in the action
             context['state'] = 'message'
-            context['message'] = 'you can begin the rulet'
+            context['message'] = 'You can begin the rulet session.'
 
         return context
 
@@ -71,7 +70,7 @@ class DepartmentOperationsRedirectView(RedirectView):
     Operations:
         clear - clears stuff from department
         not_rulet - not to join in the rulet
-        clear_all - clears stuff from all departments
+        clear_all - clears stuff from all departments;
     """
 
     def get_redirect_url(self, *args, **kwargs):

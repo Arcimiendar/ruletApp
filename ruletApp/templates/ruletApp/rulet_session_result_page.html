@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ object }}</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
+</head>
+<body>
+{% include 'ruletApp/static/header.html' %}
+<main>
+    <div class="container section">
+        {% if object.active %}
+            <h1>This rulet in session. Results are for now.</h1>
+        {% endif %}
+        <table class="striped">
+            <tr>
+                {% for department in departments %}
+                    <th>{{ department }}</th>
+                {% endfor %}
+            </tr>
+            {% for employee_row in employee_data %}
+                <tr>
+                    {% for employee in employee_row %}
+                        <td align="center ">
+                            {% if employee != '' %}
+                                <a href="{% url "employee_detail" pk=employee.pk %}" class="blue-grey-text">
+                                    <img src="{{ employee.image.url }}" class="circle" height="4%">
+                                    {{ employee }}
+                                </a>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</main>
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
+</body>
+</html>

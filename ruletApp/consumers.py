@@ -62,7 +62,7 @@ class RuletConsumer(WebsocketConsumer):
         responses = self.rulet_thread.resolve_message(data, self.this_department)
 
         for response in responses:
-            for connection in self.connections:
+            for connection in RuletConsumer.connections:
                 if connection.this_department in response.direction:
                     for message in response.messages:
                         connection.send(json.dumps(message))

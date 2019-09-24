@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ object }}</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
+</head>
+<body>
+
+{% include 'ruletApp/static/header.html' %}
+
+<main>
+
+
+
+    <div class="row">
+        <div class="col s12 m6">
+            <div class="card blue-grey darken-1">
+                <div class="card-content white-text">
+                    <span class="card-title">
+                        <img src="{{ object.image.url }}" width="30%" height="30%" class="circle">
+                        {{ object }}
+                    </span>
+                    <p>{{ object.description }}</p>
+                </div>
+            <div class="card-action">
+                {% if object.department %}
+                    <a>is in the <b>{{ object.department }}</b></a>
+                {% else %}
+                    <a><b>is not in any department</b></a>
+                {% endif %}
+                <a>was born in {{ object.date_of_birth|date }}</a>
+            </div>
+        </div>
+    </div>
+  </div>
+
+</main>
+
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
+
+</body>
+</html>

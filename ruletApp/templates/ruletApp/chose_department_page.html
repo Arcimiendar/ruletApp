@@ -1,0 +1,30 @@
+{% load static %}
+{% load materializecss %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chose department</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
+</head>
+<body>
+
+{% include 'ruletApp/static/header.html' %}
+
+<main>
+    <div class="container section">
+        <form method="post">
+            {% csrf_token %}
+            {{ form|materializecss }}
+            <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+                <i class="material-icons right">send</i>
+            </button>
+        </form>
+    </div>
+</main>
+
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
+
+</body>
+</html>

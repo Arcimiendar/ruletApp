@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rulet list</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
+</head>
+<body>
+{% include 'ruletApp/static/header.html' %}
+<main>
+    <div class="collection section">
+        {% for rulet_session in object_list %}
+            <a href="{% url 'rulet_result' pk=rulet_session.id %}" class="collection-item">{{ rulet_session }}</a>
+        {% empty %}
+            <a href="{% url 'home' %}" class="collection-item">There were no rulet sessions yet. Go home page.</a>
+        {% endfor %}
+    </div>
+</main>
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
+</body>
+</html>

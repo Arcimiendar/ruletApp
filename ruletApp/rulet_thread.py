@@ -14,7 +14,7 @@ class RuletThread:
 
     __active_thread = None
     @classmethod
-    def get_instance(cls):  # singleton pattern. I need it to have only one instance for all departments
+    def get_instance(cls) -> 'RuletThread':  # singleton pattern. I need it to have only one instance for all departments
         if cls.__active_thread is None:
             cls.__active_thread = RuletThread()
 
@@ -22,7 +22,7 @@ class RuletThread:
 
     def __init__(self):
         self.lock = Lock()
-        self.departments = set()
+        self.departments = []
         self.rulet_session = models.RuletSession()
         self.rulet_session.active = True
         self.rulet_session.save()
@@ -42,30 +42,52 @@ class RuletThread:
         with self.lock:
 
             if department not in self.departments:
-                self.departments.add(department)
+                self.departments.append(department)
 
             if message['state'] == 'exit':
+
+                if self.departments.index(department) < self.index:
+                    self.index -= 1
+
                 department.rulet_state = models.Department.RULET_STATE[2][0]
                 department.save()
                 self.departments.remove(department)
 
-                self.index %= len(self.departments)  # if we removed last department index goes to the next (first)
+                responses = []
 
                 if len(self.departments) == 0:  # if there no departments to participate more
                     RuletThread.__active_thread = None
                     self.rulet_session.active = False
                     self.rulet_session.save()
-                return [self.Response(messages=[{'state': 'info', 'info': 'you are not participating in the rulet',
-                                                 'exit': True}],
-                                      direction={department})]
+
+                    for dep in models.Department.objects.all():  # set default rulet state to all departments
+                        dep.rulet_state = models.Department.RULET_STATE[0][0]
+                        dep.save()
+
+                else:
+                    responses.append(self.Response(messages=[{'state': 'info', 'info': 'now is your turn',
+                                                              'exit': False}],
+                                                   direction={self.departments[self.index]}))
+                    if len(self.departments) > 1:
+                        responses.append(self.Response(messages=[
+                            {'state': 'info', 'info': f'now is turn of {self.departments[self.index]}', 'exit': False}],
+                            direction={dep for dep in self.departments if self.departments.index(dep) != self.index}))
+
+                    self.index %= len(self.departments)  # if we removed last department index goes to the next (first)
+
+                responses.append(
+                    self.Response(messages=[{'state': 'info', 'info': 'you are not participating in the rulet',
+                                             'exit': True}], direction={department}))
+
+                return responses
+
             if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
                 # state "does not know"
                 return [self.Response(messages=[{'state': 'info', 'info': 'awaiting for allow all departments',
                                                  'exit': False}],
                                       direction=self.departments)]
-
             elif message['state'] == 'chosen':
-                if list(self.departments)[self.index] == department:
+                if self.departments[self.index] == department:
                     self.index += 1
                     self.index %= len(self.departments)
 
@@ -83,6 +105,11 @@ class RuletThread:
                         RuletThread.__active_thread = None
                         self.rulet_session.active = False
                         self.rulet_session.save()
+
+                        for department in models.Department.objects.all():  # set default rulet state to all departments
+                            department.rulet_state = models.Department.RULET_STATE[0][0]
+                            department.save()
+
                         return [self.Response(
                             messages=[message, {'state': 'info', 'info': 'there is no employees more. Rulet is over',
                                                 'exit': True}],
@@ -92,23 +119,34 @@ class RuletThread:
                     return [self.Response(
                         messages=[message, {'state': 'info',
                                             'info': f'employee {employee} was chosen by {department},'
-                                                    f'now is turn of {list(self.departments)[self.index]}',
+                                                    f'now is turn of {self.departments[self.index]}',
                                             'exit': False}],
-                        direction={dep for dep in self.departments if dep != list(self.departments)[self.index]}
+                        direction={dep for dep in self.departments if dep != self.departments[self.index]}
                     ), self.Response(
                         messages=[message, {'state': 'info', 'info': f'now is your turn', 'exit': False}],
-                        direction={list(self.departments)[self.index]}
+                        direction={self.departments[self.index]}
                     )]
 
                 else:
                     return [self.Response(messages=[
                         {'state': 'info',
-                         'info': f'It is not your turn now. This turn is {list(self.departments)[self.index]}\'s turn',
+                         'info': f'It is not your turn now. This turn is {self.departments[self.index]}\'s turn',
                          'exit': False}
                     ], direction={department})]
             else:
-                return [self.Response(messages=[
-                    {'state': 'info',
-                     'info': 'now is your turn' if list(self.departments)[self.index] == department else
-                             f'it is turn of {list(self.departments)[self.index]}', 'exit': False}
-                ], direction={department})]
+                if self.was_awaiting:
+                    self.was_awaiting = False
+                    return [self.Response(messages=[
+                        {'state': 'info',
+                         'info': 'now is your turn', 'exit': False}], direction={self.departments[self.index]}),
+                        self.Response(messages=[
+                            {'state': 'info',
+                             'info': f'now is turn of {self.departments[self.index]}', 'exit': False}],
+                            direction={dep for dep in self.departments if dep!= self.departments[self.index]}
+                            )]
+                else:
+                    return [self.Response(messages=[
+                        {'state': 'info',
+                         'info': 'now is your turn' if self.departments[self.index] == department else
+                                 f'now is turn of {self.departments[self.index]}', 'exit': False}
+                        ], direction={department})]

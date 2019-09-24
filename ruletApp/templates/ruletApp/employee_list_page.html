@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>list of employee</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
+</head>
+<body>
+
+{% include 'ruletApp/static/header.html' %}
+
+<main>
+    <div class="collection section">
+        {% for employee in employee_list %}
+            <a href="{% url "employee_detail" pk=employee.id %}" class="collection-item">
+                <img src="{{ employee.image.url }}" width="4%" height="4%" class="circle">
+                {{ employee }}{% if employee.department %}. Is in the {{ employee.department }}{% endif %}
+            </a>
+        {% empty %}
+            <a href="{% url 'home' %}" class="collection-item">there is no employees yet. Go home.</a>
+        {% endfor %}
+    </div>
+</main>
+
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
+
+</body>
+</html>

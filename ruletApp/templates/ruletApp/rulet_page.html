@@ -22,7 +22,7 @@
     <div id="info"></div>
     <select id="chose">
         {% for employee in employees %}
-            <option value="e{{ employee.id }}">{{ employee }}</option>
+            <option value="e{{ employee.id }}" class="e{{ employee.id }}">{{ employee }}</option>
         {% endfor %}
     </select>
 
@@ -44,11 +44,12 @@
                 if (data['exit']) {
                     socket.close();
                     socket_is_open = false;
+                    location.pathname = location.pathname.replace('rulet', 'department');
                 }
             } else if (data['state'] === 'chosen') {
                 let to_delete = document.getElementsByClassName('e' + data['employee_id']);
-                for (let i=0;i<to_delete.length;i++)
-                    to_delete[i].remove()
+                while(to_delete.length > 0)
+                    to_delete[0].remove()
             }
         };
 
@@ -63,7 +64,6 @@
         function exit() {
             if (socket_is_open)
                 socket.send(JSON.stringify({state: 'exit'}));
-            location.pathname = location.pathname.replace('rulet', 'department');
         }
     </script>
 
