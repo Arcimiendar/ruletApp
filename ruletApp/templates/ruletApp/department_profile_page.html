@@ -60,7 +60,7 @@
             </div>
             <div class="modal-footer">
                 <a href="{% url "rulet_page" pk=object.id %}"
-                   class="modal-close waves-effect waves-green btn-flat">Agree nad participate</a>
+                   class="modal-close waves-effect waves-green btn-flat">Agree and participate</a>
                 <a href="{% url 'department_operations' object.id 'not_rulet' %}"
                    class="modal-close waves-effect waves-green btn-flat">Agree and do not participate</a>
                 <a href="#!" class="modal-close waves-effect waves-green btn-flat">Disagree, you can agree later</a>
@@ -84,7 +84,6 @@
         </div>
     {% endif %}
 </main>
-
 {% include 'ruletApp/static/footer.html' %}
 {% include 'ruletApp/static/materialize_script.html' %}
 

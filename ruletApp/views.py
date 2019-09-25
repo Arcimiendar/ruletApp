@@ -118,7 +118,10 @@ class RuletSessionResultView(DetailView):
             dict_employees[rulet_choice.department].append(rulet_choice.employee)
 
         context['employee_data']: List[List[models.Employee]] = []
-        max_len_of_employee_list = max(*(len(employee_list) for employee_list in dict_employees.values()))
+        if len(dict_employees) == 0:
+            max_len_of_employee_list = 0
+        else:
+            max_len_of_employee_list = max(*(len(employee_list) for employee_list in dict_employees.values()))
         for i in range(max_len_of_employee_list):  # prepare employee data to table representation
             context['employee_data'].append([])
             for employee_list in dict_employees.values():

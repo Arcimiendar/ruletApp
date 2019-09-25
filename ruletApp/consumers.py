@@ -66,23 +66,3 @@ class RuletConsumer(WebsocketConsumer):
                 if connection.this_department in response.direction:
                     for message in response.messages:
                         connection.send(json.dumps(message))
-
-    def resolve_step(self, data: Dict[str, Union[int, str]]):
-        # if data['state'] == 'exit':
-        #     self.this_department.rulet_state = models.Department.RULET_STATE[2][0]  # it means that department does not
-        #     # need staff anymore
-        #     self.this_department.save()
-        #     self.rulet_thread.remove_department(self.this_department)
-        #
-        # if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
-        #     # state "does not know".
-        #     self.send(json.dumps({
-        #         'state': 'info',
-        #         'info': "waiting departments' responses",
-        #     }))
-        # elif not self.rulet_thread.is_alive():
-        #     self.rulet_thread.start()
-
-        self.rulet_thread.resolve_message(data, self.this_department)
-
-

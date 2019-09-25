@@ -14,7 +14,7 @@ class RuletThread:
 
     __active_thread = None
     @classmethod
-    def get_instance(cls) -> 'RuletThread':  # singleton pattern. I need it to have only one instance for all departments
+    def get_instance(cls) -> 'RuletThread':  # singleton pattern.I need it to have only one instance for all departments
         if cls.__active_thread is None:
             cls.__active_thread = RuletThread()
 
@@ -56,15 +56,10 @@ class RuletThread:
                 responses = []
 
                 if len(self.departments) == 0:  # if there no departments to participate more
-                    RuletThread.__active_thread = None
-                    self.rulet_session.active = False
-                    self.rulet_session.save()
-
-                    for dep in models.Department.objects.all():  # set default rulet state to all departments
-                        dep.rulet_state = models.Department.RULET_STATE[0][0]
-                        dep.save()
+                    self.__deactivate_rulet_session()
 
                 else:
+                    self.index %= len(self.departments)
                     responses.append(self.Response(messages=[{'state': 'info', 'info': 'now is your turn',
                                                               'exit': False}],
                                                    direction={self.departments[self.index]}))
@@ -102,14 +97,7 @@ class RuletThread:
                     employee.save()
 
                     if len(models.Employee.objects.filter(department=None)) == 0:
-                        RuletThread.__active_thread = None
-                        self.rulet_session.active = False
-                        self.rulet_session.save()
-
-                        for department in models.Department.objects.all():  # set default rulet state to all departments
-                            department.rulet_state = models.Department.RULET_STATE[0][0]
-                            department.save()
-
+                        self.__deactivate_rulet_session()
                         return [self.Response(
                             messages=[message, {'state': 'info', 'info': 'there is no employees more. Rulet is over',
                                                 'exit': True}],
@@ -150,3 +138,16 @@ class RuletThread:
                          'info': 'now is your turn' if self.departments[self.index] == department else
                                  f'now is turn of {self.departments[self.index]}', 'exit': False}
                         ], direction={department})]
+
+    def __deactivate_rulet_session(self):
+        RuletThread.__active_thread = None
+        self.rulet_session.active = False
+
+        if len(self.rulet_session.rulet_choices.all()) > 0:
+            self.rulet_session.save()
+        else:
+            self.rulet_session.delete()
+
+        for department in models.Department.objects.all():  # set default rulet state to all departments
+            department.rulet_state = models.Department.RULET_STATE[0][0]
+            department.save()

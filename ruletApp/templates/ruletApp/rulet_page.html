@@ -3,33 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ object }} rulet</title>
+    {% include 'ruletApp/static/materialize_css.html' %}
 </head>
 <body>
-    available employees:
-    <ul>
-        {% for employee in employees %}
-            <li class="e{{ employee.id }}">
-                <img src="{{ employee.image.url }}" width="3%" height="3%">
-                <a href="{% url "employee_detail" pk=employee.id %}">{{ employee }}</a>
-                {% if employee.department %}
-                    {{ employee.department }}
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>no employee available</li>
-        {% endfor %}
-    </ul>
-    <div id="info"></div>
-    <select id="chose">
-        {% for employee in employees %}
-            <option value="e{{ employee.id }}" class="e{{ employee.id }}">{{ employee }}</option>
-        {% endfor %}
-    </select>
 
-    <input type="button" value="exit" onclick="exit()">
-    <input type="button" value="chose" onclick="chose()">
+{% include 'ruletApp/static/header.html' %}
 
+<main>
+    <div class="section container">
+        <h2>Available employees:</h2>
+        <div class="carousel" style="min-height: 520px">
+            {% for employee in employees %}
+                <p class="carousel-item e{{ employee.id }} center" style="transform: translateY(20)">
+                    <img src="{{ employee.image.url }}" class="circle">
+                    <b>{{ employee }}</b> <br><br>
+                    <a class="waves-effect waves-light btn" href="{% url 'employee_detail' pk=employee.id %}">
+                        show profile
+                    </a><br><br>
+                    <a class="waves-effect waves-light btn" onclick="resolve_selected({{ employee.id }})">select</a>
+                </p>
+            {% endfor %}
+        </div>
+        <a class="waves-effect waves-light btn btn-floating btn-large"
+            onclick="$('#modal2').modal('open');"><i class="material-icons">message</i></a>
+        <a class="waves-effect waves-light btn btn-floating btn-large" onclick="exit()">
+            <i class="material-icons">exit_to_app</i></a>
+    </div>
+</main>
+<div id="modal2" class="modal">
+    <div class="modal-content">
+        <h4>You received message from server</h4>
+        <p id="message">
+
+        </p>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
+    </div>
+</div>
+<a id="dart_image" style="position: absolute"><img src="https://www.animatedimages.org/data/media/162/animated-darts-image-0007.gif"
+        border="0" alt="animated-darts-image-0007" /></a>
+
+{% include 'ruletApp/static/footer.html' %}
+{% include 'ruletApp/static/materialize_script.html' %}
     <script>
+
+        let image = document.getElementById('dart_image'); // position of destination left=830, top=430
+        image.style.left = '-130px';
+        image.style.top = '430px'; //TODO: animation of darts
+
+        let position = {x: -130, y: 430};
+
         let socket_is_open = false;
         let socket = new WebSocket(
             'ws://' + window.location.host + '/ws/rulet/{{ object.id }}'
@@ -40,7 +64,9 @@
         socket.onmessage = ev => {
             let data = JSON.parse(ev.data);
             if (data['state'] === 'info') {
-                document.getElementById('info').innerHTML = data['info']
+                document.getElementById('message').innerHTML = data['info'];
+                if (!data['exit'])
+                    $('#modal2').modal('open');
                 if (data['exit']) {
                     socket.close();
                     socket_is_open = false;
@@ -48,17 +74,17 @@
                 }
             } else if (data['state'] === 'chosen') {
                 let to_delete = document.getElementsByClassName('e' + data['employee_id']);
+
                 while(to_delete.length > 0)
                     to_delete[0].remove()
+                $('.carousel').removeClass('initialized');
+                $('.carousel').carousel();
             }
         };
 
-        function chose() {
-            let select = document.getElementById('chose');
-            let selected_option = select.options[select.selectedIndex];
-            let employee_id = +selected_option.value.slice(1, selected_option.value.length);
+        function resolve_selected(selected_id) {
             if (socket_is_open)
-                socket.send(JSON.stringify({state: 'chosen', employee_id: employee_id}))
+                socket.send(JSON.stringify({state: 'chosen', employee_id: selected_id}))
         }
 
         function exit() {
