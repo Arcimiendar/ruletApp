@@ -5,8 +5,8 @@ from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DetailView, TemplateView, RedirectView
-from . import forms
-from . import models
+from . import forms, models
+from .utils import set_department_from_cookie
 
 
 class ChoseDepartmentView(FormView):
@@ -17,11 +17,13 @@ class ChoseDepartmentView(FormView):
         return HttpResponseRedirect(reverse_lazy('department_profile', args=[form.cleaned_data['options'].id]))
 
 
+@set_department_from_cookie
 class EmployeesListView(ListView):
     template_name = 'ruletApp/employee_list_page.html'
     model = models.Employee
 
 
+@set_department_from_cookie
 class EmployeeDetailView(DetailView):
     template_name = 'ruletApp/employee_detail_page.html'
     model = models.Employee
@@ -52,6 +54,11 @@ class DepartmentProfilePageView(DetailView):
             context['message'] = 'You can begin the rulet session.'
 
         return context
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        response.set_cookie('department', self.object.id)
+        return response
 
 
 class RuletView(DetailView):
@@ -97,11 +104,13 @@ class DepartmentOperationsRedirectView(RedirectView):
         return reverse_lazy('department_profile', kwargs={'pk': kwargs['pk']})
 
 
+@set_department_from_cookie
 class RuletSessionListView(ListView):
     template_name = 'ruletApp/rulet_list_page.html'
     model = models.RuletSession
 
 
+@set_department_from_cookie
 class RuletSessionResultView(DetailView):
     template_name = 'ruletApp/rulet_session_result_page.html'
     model = models.RuletSession
@@ -121,7 +130,7 @@ class RuletSessionResultView(DetailView):
         if len(dict_employees) == 0:
             max_len_of_employee_list = 0
         else:
-            max_len_of_employee_list = max(*(len(employee_list) for employee_list in dict_employees.values()))
+            max_len_of_employee_list = max((len(employee_list) for employee_list in dict_employees.values()))
         for i in range(max_len_of_employee_list):  # prepare employee data to table representation
             context['employee_data'].append([])
             for employee_list in dict_employees.values():

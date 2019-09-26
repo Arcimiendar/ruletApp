@@ -1,0 +1,44 @@
+{% if department != None %}
+<script>
+
+    let btn = document.getElementById('not-participate');
+    let msg = document.getElementById('message');
+
+    $('#request').modal();
+    $('#participating').modal();
+
+    let socket = new WebSocket(
+        'ws://' + window.location.host + '/ws/notification/' + {{ department.id }}
+    );
+
+    socket.onmessage = ev => {
+        let data = JSON.parse(ev.data);
+        if (data['state'] === 'notification')
+        {
+            $('#request').modal('open');
+            if (btn)
+                btn.innerHTML = "<a href=\"{% url 'department_operations' department.id 'not_rulet' %}\"" +
+                        "class=\"waves-effect waves-light btn\">\n" +
+                        "do not participate in the rulet\n" + "</a>";
+            if (msg)
+                msg.innerHTML = 'You need to allow or/and join to the rulet.';
+        }
+        else if (data['state'] === 'participating')
+        {
+            $('#participating').modal('open');
+            if (btn)
+                btn.innerHTML = "";
+            if (msg)
+                msg.innerHTML = 'You are participating in the rulet.';
+        } else if (data['state'] === 'exit')
+        {
+            if(btn)
+                btn.innerHTML = "";
+            if(msg)
+              msg.innerHTML = 'You can begin the rulet session.'
+        }
+
+    }
+
+</script>
+{% endif %}

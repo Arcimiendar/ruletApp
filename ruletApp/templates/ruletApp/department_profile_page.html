@@ -8,6 +8,7 @@
 <body>
 
 {% include 'ruletApp/static/header.html' %}
+{% include 'ruletApp/static/notification_socket.html' %}
 
 <main>
 <div class="container">
@@ -39,62 +40,24 @@
             </span></div>
         </li>
     </ul>
-    <p>{{ message }}</p>
+    <p id="message">{{ message }}</p>
     <a href="{% url 'department_operations' object.id 'clear' %}" class="waves-effect waves-light btn">
         clear department</a>
     <a href="{% url "rulet_page" pk=object.id %}" class="waves-effect waves-light btn">participate in the rulet</a>
-    {% if state == 'needs_to_allow' %}
-        <a href="{% url 'department_operations' object.id 'not_rulet' %}" class="waves-effect waves-light btn">
-            do not participate in the rulet</a><br>
-    {% endif %}
+    <a id="not-participate">
+
+    </a>
+    <br>
     <br>
     <span style="opacity: 0">
         hah are you really reading this code?
     </span>
-    {% if state == 'needs_to_allow' %}
-        <div id="modal1" class="modal">
-            <div class="modal-content">
-                <h4>You are requested to participate in the rulet</h4>
-                <p>
-                    You can participate. In that case you will be redirected to the rulet page. <br>
-                    Also you can allow rulet and do not participate on it.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <a href="{% url "rulet_page" pk=object.id %}"
-                   class="modal-close waves-effect waves-green btn-flat">Agree and participate</a>
-                <a href="{% url 'department_operations' object.id 'not_rulet' %}"
-                   class="modal-close waves-effect waves-green btn-flat">Agree and do not participate</a>
-                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Disagree, you can agree later</a>
-            </div>
-          </div>
-        </div>
-    {% elif state == 'participating' %}
-         <div id="modal1" class="modal">
-            <div class="modal-content">
-                <h4>You are participating in the rulet</h4>
-                <p>
-                    You can go to the rulet session or do it later
-                </p>
-            </div>
-            <div class="modal-footer">
-                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
-                <a href="{% url "rulet_page" pk=object.id %}"
-                   class="modal-close waves-effect waves-green btn-flat">Back to session</a>
-            </div>
-          </div>
-    {% endif %}
+</div>
 </main>
+
 {% include 'ruletApp/static/footer.html' %}
 {% include 'ruletApp/static/materialize_script.html' %}
-
-<script>
-
- $(document).ready(function(){
-    $('#modal1').modal();
-    $('#modal1').modal('open');
- });
-</script>
+{% include 'ruletApp/static/notification_socket_js.html' %}
 
 </body>
 </html>

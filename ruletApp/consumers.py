@@ -1,10 +1,50 @@
+import asyncio
 import json
 import time
 from typing import List, Dict, Union
 
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
+from django.db import transaction
+
 from . import models
 from .rulet_thread import RuletThread
+
+
+class DepartmentNotificationConsumer(AsyncWebsocketConsumer):
+    """
+    Socket is used to send notifications to the department on frontend like real time
+    api:
+    {'state': 'notification'}  - let know, that rulet is to begin
+    {'state': 'participating'} - let know, that departments is participating
+    {'state': 'exit'}          - let know, that last rulet session is completed
+    """
+
+    connected: List['DepartmentNotificationConsumer'] = []
+
+    async def connect(self):
+        DepartmentNotificationConsumer.connected.append(self)
+        await self.accept()
+        department_id = self.scope['url_route']['kwargs']['department_id']
+        try:
+            self.department = models.Department.objects.get(pk=department_id)
+            if len(models.RuletSession.objects.filter(active=True)) > 0:
+                if self.department.rulet_state == models.Department.RULET_STATE[0][0]:
+                    await self.send(json.dumps({'state': 'notification'}))
+                elif self.department.rulet_state == models.Department.RULET_STATE[1][0]:
+                    await self.send(json.dumps({'state': 'participating'}))
+        except models.Department.DoesNotExist:
+            await self.close()
+            DepartmentNotificationConsumer.connected.remove(self)
+
+    async def disconnect(self, code):
+        DepartmentNotificationConsumer.connected.remove(self)
+
+    @classmethod
+    async def send_message_to_all(cls, msg, state):
+        for connection in cls.connected:
+            connection.department = models.Department.objects.get(pk=connection.department.id)
+            if connection.department.rulet_state == state:
+                await connection.send(json.dumps(msg))
 
 
 class RuletConsumer(WebsocketConsumer):
@@ -22,6 +62,7 @@ class RuletConsumer(WebsocketConsumer):
                                     - send employee id to all consumers to remove this employee from the choosing list
     """
 
+    loop = None
     connections: List['RuletConsumer'] = []
 
     def __init__(self, *args, **kwargs):
@@ -31,6 +72,15 @@ class RuletConsumer(WebsocketConsumer):
         self.this_department.rulet_state = models.Department.RULET_STATE[1][0]
         # it means department is participating in a rulet
         self.this_department.save()
+        # transaction.savepoint_commit(transaction.savepoint())
+
+        if len(models.RuletSession.objects.filter(active=True)) == 0:
+            RuletConsumer.loop = asyncio.get_event_loop()
+            RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
+                {'state': 'notification'}, models.Department.RULET_STATE[0][0]))
+            RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
+                {'state': 'participating'}, models.Department.RULET_STATE[1][0]))
+
         self.rulet_thread = RuletThread.get_instance()
 
     def connect(self):
@@ -44,6 +94,13 @@ class RuletConsumer(WebsocketConsumer):
 
     def disconnect(self, code):
         RuletConsumer.connections.remove(self)
+        if len(models.RuletSession.objects.filter(active=True)) == 0:
+            RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
+                {'state': 'exit'}, models.Department.RULET_STATE[0][0]))
+            RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
+                {'state': 'exit'}, models.Department.RULET_STATE[1][0]))
+            RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
+                {'state': 'exit'}, models.Department.RULET_STATE[2][0]))
         print(f'there is {len(RuletConsumer.connections)} connected departments now '
               f'(disconnect department id is {self.department_id})'
               )

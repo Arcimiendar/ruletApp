@@ -14,8 +14,8 @@
         {% endif %}
         <table class="striped">
             <tr>
-                {% for department in departments %}
-                    <th>{{ department }}</th>
+                {% for dep in departments %}
+                    <th>{{ dep }}</th>
                 {% endfor %}
             </tr>
             {% for employee_row in employee_data %}
@@ -35,7 +35,10 @@
         </table>
     </div>
 </main>
+
+{% include 'ruletApp/static/notification_socket.html' %}
 {% include 'ruletApp/static/footer.html' %}
 {% include 'ruletApp/static/materialize_script.html' %}
+{% include 'ruletApp/static/notification_socket_js.html' %}
 </body>
 </html>
