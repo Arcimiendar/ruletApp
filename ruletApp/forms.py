@@ -1,6 +1,5 @@
 from django import forms
 from . import models
-from django.utils.functional import lazy
 
 
 class ChoseDepartmentForm(forms.Form):
