@@ -44,11 +44,14 @@ INSTALLED_APPS = [
     'ruletApp',
     'django_extensions',
     'materializecssform',
+    'graphene_django',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -131,3 +134,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 ASGI_APPLICATION = 'rulet.routing.application'
+
+GRAPHENE = {
+    'SCHEMA': 'rulet.schema.schema'
+}
+
+CORS_ORIGIN_ALLOW_ALL = True
