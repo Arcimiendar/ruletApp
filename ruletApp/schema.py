@@ -32,6 +32,7 @@ class Query(ObjectType):
     departments = graphene.List(DepartmentType)
     employee = graphene.Field(EmployeeType, id=graphene.Int())
     employees = graphene.List(EmployeeType)
+    employees_without_department = graphene.List(EmployeeType)
     rulet_session = graphene.Field(RuletSessionType, id=graphene.Int())
     rulet_sessions = graphene.List(RuletSessionType)
     rulet_choice = graphene.Field(RuletChoiceType, id=graphene.Int())
@@ -64,6 +65,9 @@ class Query(ObjectType):
 
     def resolve_employees(self, info, **kwargs):
         return models.Employee.objects.all()
+
+    def resolve_employees_without_department(self, info, **kwargs):
+        return models.Employee.objects.filter(department=None)
 
     def resolve_rulet_session(self, info, **kwargs):
         pk = kwargs.get('id')
