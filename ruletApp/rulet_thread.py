@@ -76,6 +76,14 @@ class RuletThread:
 
                 return responses
 
+            if len(models.Employee.objects.filter(department=None)) == 0:
+                self.__deactivate_rulet_session()
+                return [self.Response(
+                    messages=[message, {'state': 'info', 'info': 'there is no employees more. Rulet is over',
+                                        'exit': True}],
+                    direction=self.departments
+                )]
+
             if len(models.Department.objects.filter(rulet_state=models.Department.RULET_STATE[0][0])) > 0:
                 # state "does not know"
                 return [self.Response(messages=[{'state': 'info', 'info': 'awaiting for allow all departments',
