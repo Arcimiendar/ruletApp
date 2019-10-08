@@ -1,10 +1,10 @@
 import asyncio
 import json
-import time
-from typing import List, Dict, Union
+
+from typing import List, Dict
 
 from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
-from django.db import transaction
+from threading import Lock
 
 from . import models
 from .rulet_thread import RuletThread
@@ -61,7 +61,7 @@ class RuletConsumer(WebsocketConsumer):
     {'state': 'chosen', 'employee_id': 12}
                                     - send employee id to all consumers to remove this employee from the choosing list
     """
-
+    lock = Lock()
     loop = None
     connections: List['RuletConsumer'] = []
 
@@ -93,7 +93,8 @@ class RuletConsumer(WebsocketConsumer):
         )
 
     def disconnect(self, code):
-        RuletConsumer.connections.remove(self)
+        with RuletConsumer.lock:
+            RuletConsumer.connections.remove(self)
         if len(models.RuletSession.objects.filter(active=True)) == 0:
             RuletConsumer.loop.create_task(DepartmentNotificationConsumer.send_message_to_all(
                 {'state': 'exit'}, models.Department.RULET_STATE[0][0]))
@@ -118,8 +119,9 @@ class RuletConsumer(WebsocketConsumer):
             RuletConsumer.connections.remove(self)
         responses = self.rulet_thread.resolve_message(data, self.this_department)
 
-        for response in responses:
-            for connection in RuletConsumer.connections:
-                if connection.this_department in response.direction:
-                    for message in response.messages:
-                        connection.send(json.dumps(message))
+        with RuletConsumer.lock:
+            for response in responses:
+                for connection in RuletConsumer.connections:
+                    if connection.this_department in response.direction:
+                        for message in response.messages:
+                            connection.send(json.dumps(message))
