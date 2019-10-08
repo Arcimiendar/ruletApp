@@ -110,6 +110,76 @@ class EmployeeInput(graphene.InputObjectType):
     department_id = graphene.ID()
 
 
+class DepartmentInput(graphene.InputObjectType):
+    id = graphene.ID()
+
+
+class ClearDepartment(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    department = graphene.Field(DepartmentType)
+
+    @staticmethod
+    def mutate(root, info, id: int, input: DepartmentType = None):
+        ok = False
+        try:
+            department = models.Department.objects.get(pk=id)
+        except models.Department.DoesNotExist:
+            department = None
+
+        if department is not None:
+            ok = True
+            for employee in department.employees.all():
+                employee.department = None
+                employee.save()
+
+        return ClearDepartment(ok=ok, department=department)
+
+
+class ClearAllDepartments(graphene.Mutation):
+    class Arguments:
+        pass
+
+    ok = graphene.Boolean()
+    departments = graphene.List(DepartmentType)
+
+    @staticmethod
+    def mutate(root, info, input: DepartmentType = None):
+        ok = True
+        departments = models.Department.objects.all()
+        for employee in models.Employee.objects.all():
+            employee.department = None
+            employee.save()
+
+        return ClearAllDepartments(ok=ok, departments=departments)
+
+
+class DepartmentNotPartcicipate(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+
+    ok = graphene.Boolean()
+    department = graphene.Field(DepartmentType)
+
+    @staticmethod
+    def mutate(root, info, id: int, input: DepartmentInput = None):
+        ok = False
+
+        try:
+            department = models.Department.objects.get(pk=id)
+        except models.Department.DoesNotExist:
+            department = None
+
+        if len(models.RuletSession.objects.filter(active=True)) > 0 and department is not None:
+            department.rulet_state = models.Department.RULET_STATE[2][0]
+            department.save()
+            ok = True
+
+        return DepartmentNotPartcicipate(ok=ok, department=department)
+
+
 class SetDepartmentToEmployee(graphene.Mutation):
     class Arguments:
         id = graphene.Int(required=True)
@@ -140,6 +210,9 @@ class SetDepartmentToEmployee(graphene.Mutation):
 
 class Mutation(ObjectType):
     set_department_to_employee = SetDepartmentToEmployee.Field()
+    clear_department = ClearDepartment.Field()
+    clear_all_department = ClearAllDepartments.Field()
+    department_not_participate = DepartmentNotPartcicipate.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
