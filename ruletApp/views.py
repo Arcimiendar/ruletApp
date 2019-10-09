@@ -140,3 +140,7 @@ class RuletSessionResultView(DetailView):
                     context['employee_data'][i].append('')
 
         return context
+
+
+class ReactFrontView(TemplateView):
+    template_name = 'ruletApp/react_front/index.html'

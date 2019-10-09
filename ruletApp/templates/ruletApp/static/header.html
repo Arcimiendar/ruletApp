@@ -2,6 +2,9 @@
     <div class="nav-wrapper">
         <a class="brand-logo">The Rulet Application {{ department }}</a>
         <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a><div class="switch"><label style="color: white">
+                template<input type="checkbox" onclick="window.location.host = 'localhost:3000'">
+                <span class="lever"></span>react</label></div></a></li>
             <li><a href="{% url 'employees_list' %}">Employees list</a></li>
             <li><a href="{% url 'rulet_session_list' %}">Rulet list</a></li>
             <li><a href="{% url 'department_operations' 0 'clear_all' %}">Clear all departments</a></li>
