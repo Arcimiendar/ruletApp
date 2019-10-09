@@ -143,4 +143,4 @@ class RuletSessionResultView(DetailView):
 
 
 class ReactFrontView(TemplateView):
-    template_name = 'ruletApp/react_front/index.html'
+    template_name = 'ruletApp/build/index.html'

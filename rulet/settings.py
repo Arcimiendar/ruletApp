@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'materializecssform',
     'graphene_django',
-    'corsheaders'
+    'corsheaders',
+    'webpack_loader'
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,10 @@ GRAPHENE = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+WEB_PACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json')
+    }
+}
