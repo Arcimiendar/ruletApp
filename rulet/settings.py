@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'materializecssform',
     'graphene_django',
     'corsheaders',
-    'webpack_loader'
+    'webpack_loader',
+    'gunicorn'
 ]
 
 MIDDLEWARE = [
