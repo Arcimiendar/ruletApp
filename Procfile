@@ -1,1 +1,1 @@
-web: gunicorn rulet.wsgi --log-file
+web: gunicorn rulet:app
