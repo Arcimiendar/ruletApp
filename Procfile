@@ -1,0 +1,1 @@
+web: gunicorn ruletApp.wsgi --log-file -
