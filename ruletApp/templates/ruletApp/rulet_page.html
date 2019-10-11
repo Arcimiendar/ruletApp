@@ -56,7 +56,7 @@
 
         let socket_is_open = false;
         let socket = new WebSocket(
-            'ws://' + window.location.host + '/ws/rulet/{{ object.id }}'
+            'wss://' + window.location.host + '/ws/rulet/{{ object.id }}'
         );
         socket.onopen = ev => {
             socket_is_open = true;

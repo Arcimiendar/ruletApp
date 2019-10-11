@@ -8,7 +8,7 @@
     $('#participating').modal();
 
     let socket = new WebSocket(
-        'ws://' + window.location.host + '/ws/notification/' + {{ department.id }}
+        'wss://' + window.location.host + '/ws/notification/' + {{ department.id }}
     );
 
     socket.onmessage = ev => {
