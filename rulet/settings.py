@@ -28,7 +28,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '192.168.48.89',
     '127.0.0.1',
-    "ruletspp.herokuapp.com"
+    "ruletspp.herokuapp.com",
+    "0.0.0.0",
 ]
 
 # Application definition
